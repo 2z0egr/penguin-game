@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> penguin game </title>
+    <link href="https://fonts.googleapis.com/css2?family=Holtwood+One+SC&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Joti+One&display=swap" rel="stylesheet">
+    <style>
+        *{ margin: 0; padding: 0; }
+        body, html{ width: 100%; height: 100%; } /* 이거 걸어야 body : flex 가능 */
+        body{ 
+            display: flex; justify-content: center; align-items: center; 
+            background: #424242; 
+            font-weight: 400; font-style: normal;
+        }
+        img{ display: block; }
+        section{ width: 860px; height: 90vh; background: #fff; border-radius: 20px;}
+        .play{ position: relative; z-index: 10; display: block; font-family: "Holtwood One SC", serif;}
+        .play>h2{ 
+            width: 268px; height: 127px; margin: 20px auto; 
+            position: relative; z-index: 5;
+        }
+        .play>h2>img{ width: 100%; height: 100%;}
+        .play>.play_area{ 
+            width: 50%; height: 84%; margin: 0 auto; display: flex; flex-flow: row wrap;
+            justify-content: center; align-content: center;
+            background: url("img/game_bg.png") no-repeat center/contain;
+            box-sizing: border-box; position: absolute; left: 25%; bottom: 0;
+        }
+        .play>.play_area>.hole{
+            width: 26%; height: 25%;
+            background: url("img/hole.png") no-repeat center/contain;
+            position: relative;
+        }
+        .play>.play_area .animal{ 
+            width: 100%; height: 100%; object-fit: contain;  
+            position: absolute; top: -24px; left: 12px; 
+            display: none;
+        }
+
+        .play>p{
+            width: 18%; height: auto; padding-top: 60px; 
+            text-align: center; font-size: 40px;
+            font-weight: bold; color: #EB7406;
+            background: url("img/time.png") no-repeat center top;
+            background-size: contain;
+        }
+        .play>.time{ letter-spacing: 0.2em; position: absolute; left: 50px; top: 36%;}
+        .play>.score{
+            background-image: url("img/score.png");
+            position: absolute; right: 44px; top: 36%;
+        }
+        .hammer{ 
+            position: absolute; left: 0; top: 0; z-index: 100; pointer-events: none; 
+            transition: transform 0.05s; z-index: 9999;
+        }
+        .hammer>img{ width: 150px; height: auto; margin: -150px 0 0 60px;}
+        
+        .countdown{
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center; line-height: 100vh;
+            background: rgba(0,0,0,0.4); width: 100%; height: 100%;
+            font-size: 140px; color: #fc0; font-weight: bold;
+            z-index: 100; display: block; font-family: "Joti One", serif;
+        }
+        .fail{ position: absolute; display: block; font-family: "Joti One", serif;}
+        .fail>div, .suc>div{ 
+            background: url("img/fail_bg.png") no-repeat center bottom/contain; 
+            height: 100%; width: 62%; margin: 0 auto;
+            box-sizing: border-box;
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+        }
+        .fail h2, .suc h2{ margin: 0 auto; width: 40%; height: 20%; padding-top: 20px;}
+        .fail h2>img, .suc h2>img{ width: 100%; height: 100%; object-fit: contain; }
+        .fail p{ 
+            font-size: 90px; color: #f30; text-align: center; margin-top: 20px;
+            text-shadow: 2px 4px rgba(0, 0, 0, 0.6);
+        }
+        .fail button, .suc button{ 
+            border: 0; background: none; font-size: 90px;
+            margin-bottom: 98px; font-family: "Joti One", serif;
+            color: #fc0; text-shadow: 2px 2px rgba(0, 0, 0, 0.6);
+        }
+        .fail span{ position: absolute; bottom: 4px; right: 46px; width: 18%;}
+        .fail span>img{ width: 100%; height: 100%; object-fit: cover;}
+        .suc{ 
+            position: absolute; display: none; font-family: "Joti One", serif;
+            background-image: url(img/suc_bg.png);
+            background-position: left 30% bottom; background-size: contain;
+            background-color: white;
+            background-repeat: no-repeat;
+        }
+        .suc>div{ background: none;}
+        .suc p{ 
+            font-size: 60px; color: #fc0;
+            text-shadow: 2px 2px rgba(0, 0, 0, 0.6);
+        }
+        .suc .time_wrap{ 
+            width: 55%; height: 24%; background: rgba(0, 0, 0, 0.4); border-radius: 20px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #fff; font-size: 30px; letter-spacing: 0.1em; 
+            font-family: "Holtwood One SC", serif;
+        }
+        .suc .time_wrap>.result_time{ letter-spacing: 0.2em; }
+        .suc .time_wrap>.text{ padding-top: 4px; color: #fc0;}
+        .suc .again{ margin-bottom: 50px; font-size: 70px; }
+        .suc .monkey{ 
+            position: absolute; bottom: 0px; right: 38px;
+            width: 24%; height: auto;
+        }
+        .suc .monkey>img{ width: 100%; height: 100%; object-fit: contain;}
+    </style>
+</head>
+<body>
+    <div class="countdown">3</div>
+    <section class="play">
+        <h2><img src="img/h1_title.png" alt="madagascar_penguins"></h2>
+        <div class="play_area">
+            <div class="hole">
+                <img src="img/show0.png" alt="penguin" class="animal" id='animal-1'>
+            </div>
+            <div class="hole">
+                <img src="img/show1.png" alt="monkey" class="animal" id='animal-2'>
+            </div>
+            <div class="hole">
+                <img src="img/show0.png" alt="penguin" class="animal" id='animal-3'>
+            </div>
+            <div class="hole">
+                <img src="img/show1.png" alt="monkey" class="animal" id='animal-4'>
+            </div>
+            <div class="hole">
+                <img src="img/show0.png" alt="penguin" class="animal" id='animal-5'>
+            </div>
+            <div class="hole">
+                <img src="img/show1.png" alt="monkey" class="animal" id='animal-6'>
+            </div>
+            <div class="hole">
+                <img src="img/show0.png" alt="penguin" class="animal" id='animal-7'>
+            </div>
+            <div class="hole">
+                <img src="img/show1.png" alt="monkey" class="animal" id='animal-8'>
+            </div>
+            <div class="hole">
+                <img src="img/show0.png" alt="penguin" class="animal" id='animal-9'>
+            </div>
+        </div>
+        <p class="time">0</p>
+        <p class="score">0 / 9</p>
+    </section>
+    <section class="fail">
+        <div class="wrap">
+            <h2><img src="img/logo.png" alt="madagascar_penguins"></h2>
+            <p>FAIL!</p>
+            <button class="again" onclick="again()">AGAIN?</button>
+            <span><img src="img/fail_span.png" alt="cute character"></span>
+        </div>
+    </section>
+    <section class="suc">
+        <div class="wrap">
+            <h2><img src="img/logo.png" alt="madagascar_penguins"></h2>
+            <p>SUCCESS!</p>
+            <div class="time_wrap">
+                <span class="text">TIME</span>
+                <span class="result_time">00:00</span>
+            </div>
+            <button class="again" onclick='again()'>AGAIN?</button>
+        </div>
+        <span class="monkey"><img src="img/suc_monkey.png" alt="원숭이"></span>
+    </section>
+    <span class="hammer"><img src="img/hammer.png" alt="hammer"></span>
+
+    <script>
+        const hammer = document.querySelector('.hammer');
+        //hammer.style.display = 'none';
+
+        // 카운트 다운
+        const countDownDisplay = document.querySelector('.countdown');
+        let countDown = 3; 
+        const InitCountDown = ()=>{
+            countDownDisplay.innerHTML = countDown;        
+            countDown--;
+            if( countDown<0 ){ // ==-1
+                countDownDisplay.innerHTML = 'START'
+            }
+            if( countDown<-1 ){
+                clearInterval( countDownInterval );
+                startGame();
+            }  
+        }
+        InitCountDown();
+        const countDownInterval = setInterval( InitCountDown, 1000);
+
+        // 게임 시작
+        let playTime = 15;
+        let gameScore = 0;
+        let timer;
+        let showAnimalRandom;
+        const time = document.querySelector('.play>.time');
+        const score = document.querySelector('.play>.score');
+        const playArea = document.querySelector('.play');
+        const failArea = document.querySelector('.fail');
+        const sucArea = document.querySelector('.suc');
+        const resultTime = document.querySelector('.suc .result_time');
+        resultTime.textContent = playTime;
+
+        const startGame=()=>{
+            countDownDisplay.style.display='none';
+            time.innerHTML=playTime;
+        
+            hammer.style.display='block';
+            showAnimalRandom = setInterval(showRandomAnimal, 800);
+
+            const countDownTimer=()=>{
+                playTime--;
+                time.innerHTML=playTime;
+                if( playTime===0 || gameScore===9){      
+                    clearInterval(timer);                
+                    clearInterval(showAnimalRandom);
+                    hammer.style.display='none';
+                    playArea.style.display='none';
+                    if( gameScore === 9 ){ // 성공 조건
+                        sucArea.style.display='block';
+                        document.querySelector('.result_time').innerHTML= '00 : 0'+playTime; // playTime의 멈춘 시간 기록
+                    }else if( playTime===0 && gameScore<9 ){ // 실패 조건
+                        failArea.style.display='block';
+                    }
+                }
+                document.body.style.cursor='default';
+            }
+            timer = setInterval(countDownTimer, 1000);
+        }
+
+        // 랜덤 타겟 배열
+        let animals = [
+            {id:'animal-1', type:'penguin'},
+            {id:'animal-2', type:'monkey'},
+            {id:'animal-3', type:'penguin'},
+            {id:'animal-4', type:'monkey'},
+            {id:'animal-5', type:'penguin'},
+            {id:'animal-6', type:'monkey'},
+            {id:'animal-7', type:'penguin'},
+            {id:'animal-8', type:'monkey'},
+            {id:'animal-9', type:'penguin'},
+        ];
+
+        // 랜덤 게임
+        function showRandomAnimal(){
+            hammer.style.display='block';
+            hideAllAnimals(); // 모두 숨긴 후
+
+            // 랜덤 타겟 생성 (펭귄, 원숭이, 둘 다)
+            let randomTarget = Math.floor(Math.random()*3); // 0:펭귄, 1:원숭이, 2: 둘다
+
+            if (randomTarget === 0) {
+                showAnimal('penguin');
+            } else if(randomTarget === 1){
+                showAnimal('monkey');
+            } else if( randomTarget === 2){
+                showBothAnimals(); // 둘 다 등장
+            }
+        }
+
+        // 특정 동물 보여주는 함수
+        function showAnimal(type){
+            let filterAnimals = animals.filter(animal => animal.type === type);
+            let randomIndex = Math.floor(Math.random()* filterAnimals.length);
+            let animalId = filterAnimals[randomIndex].id;
+
+            document.getElementById(animalId).style.display = 'block';
+        }
+
+        // 둘 다 랜덤으로 보여주는 함수
+        function showBothAnimals(){
+            showAnimal('penguin');
+            showAnimal('monkey');
+        }
+
+        // 모든 동물 숨기는 함수
+        function hideAllAnimals(){
+            animals.forEach(animal=>{
+                document.getElementById(animal.id).style.display='none';
+            })
+        }
+
+        animals.forEach(item=>{
+            const element = document.getElementById(item.id);
+            const actionClick=()=>{
+                if( item.type === 'penguin' ){
+                    gameScore++;
+                }else if( item.type === 'monkey' ){
+                    if( gameScore>0 ){
+                        gameScore--;
+                    }else{
+                        gameScore=0;
+                    }
+                }
+                score.innerHTML = gameScore + ' / 9';
+                element.removeEventListener('click', actionClick);
+                setTimeout(()=>{
+                    element.addEventListener('click', actionClick);
+                }, 900);
+            }
+            element.addEventListener('click', actionClick);
+        })
+
+        // again 함수
+        function again(){
+            sucArea.style.display='none';
+            failArea.style.display='none';
+            countDownDisplay.style.display='block';
+            playArea.style.display='block';
+            // 시간, 스코어 초기화
+            clearInterval(timer);
+            playTime = 15;
+            gameScore = 0;
+            InitCountDown();
+            score.innerHTML = gameScore + ' / 9';
+        }
+
+        // hammer 작동
+        document.addEventListener('mousemove', (e)=>{
+            hammer.style.left=e.clientX+'px';
+            hammer.style.top=e.clientY+'px';
+        });
+        document.addEventListener('mousedown', ()=>{
+            hammer.style.transform = 'rotate(-68deg)';
+        });
+        document.addEventListener('mouseup', ()=>{
+            hammer.style.transform = 'rotate(0deg)';
+        });
+
+    </script>
+</body>
+</html>

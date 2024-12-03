@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> penguin game </title>
+    <link href="https://fonts.googleapis.com/css2?family=Holtwood+One+SC&display=swap" rel="stylesheet">
+    <style>
+        *{ margin: 0; padding: 0; }
+        body, html{ width: 100%; height: 100%; } /* 이거 걸어야 body : flex 가능 */
+        body{ display: flex; justify-content: center; align-items: center; background: #4e4e4e;}
+        img{ display: block; }
+        section{
+            background: url("img/start_bg.png") no-repeat center;
+            background-color: #fff; border-radius: 20px;
+            width: 1024px; height: 90vh;
+            display: flex; flex-flow: column; 
+            justify-content: space-around; align-items: center;
+            row-gap: 270px;
+        }
+        section>h1{ margin-left: 20px; width: 360px; height: 216px;}
+        section>h1>img{ width: 100%; height: 100%; }
+        button{ 
+            border: 0; cursor: pointer; background: none;
+            font-size: 74px; font-family: "Holtwood One SC", serif;
+            color: #fc0; text-shadow: 4px 8px rgb(183 7 7 / 80%);
+        }
+    </style>
+</head>
+<body>
+    <section>
+        <h1><img src="img/logo.png" alt="madagascar"></h1>
+        <button class="start">PLAY</button>
+    </section>
+
+    <script>
+        document.querySelector('.start').addEventListener('click', ()=>{
+            window.location.href="game.html";
+        })
+    </script>
+</body>
+</html>
